@@ -33,8 +33,9 @@ if [ ! -d "/home/$UNAME" ]; then
     UPASSWORD=$(dialog --title "System Username" --inputbox "Enter a Password for your new user." 10 50 3>&1 1>&2 2>&3)
 	sudo adduser $UNAME --gecos  "Knight,Cinema,0,000-000-0000,000-000-0000" --disabled-password
 	echo $UNAME":"$UPASSWORD | sudo chpasswd
-  fi
+  else
   exit 0
+  fi
 fi
 
 
