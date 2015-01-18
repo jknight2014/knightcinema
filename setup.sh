@@ -113,8 +113,8 @@ AUTO_MOUNT_RULES_FILE="/etc/udev/rules.d/media-by-label-auto-mount.rules"
 SYSCTL_CONF_FILE="/etc/sysctl.conf"
 RSYSLOG_FILE="/etc/init/rsyslog.conf"
 POWERMANAGEMENT_DIR="/etc/polkit-1/localauthority/50-local.d/"
-DOWNLOAD_URL="https://github.com/jknight2014/knightcinema/blob/raw/Testing/Downloads/"
-KODI_PPA="ppa:team-xbmc/ppa"
+DOWNLOAD_URL="https://raw.githubusercontent.com/jknight2014/knightcinema/Testing/Downloads/"
+KODI_PPA_STABLE="ppa:team-xbmc/ppa"
 KODI_PPA_UNSTABLE="ppa:team-xbmc/unstable"
 HTS_TVHEADEND_PPA="ppa:jabbors/hts-stable"
 OSCAM_PPA="ppa:oscam/ppa"
@@ -377,8 +377,9 @@ function addXbmcPpa()
 	then
         IS_ADDED=$(addRepository "$KODI_PPA_UNSTABLE")
 	else
-		IS_ADDED=$(addRepository "$KODI_PPA")
+		IS_ADDED=$(addRepository "$KODI_PPA_STABLE")
 	fi
+	echo $IS_ADDED >> knightcinema.com
 }
 
 function distUpgrade()
