@@ -26,7 +26,7 @@ else
 	exit 0
 fi
 
-UNAME=$(dialog --title "System Username" --inputbox "Enter the user you want your scripts to run as. (Case sensitive, Suggested username is \"kodi\")" kodi 10 50 3>&1 1>&2 2>&3)
+UNAME=$(dialog --title "System Username" --inputbox "Enter the user you want your scripts to run as. (Case sensitive, Suggested username is \"kodi\")" 10 50 3>&1 1>&2 2>&3)
 
 if [ ! -d "/home/$UNAME" ]; then
   if (dialog --yesno 'The user, '$UNAME', you entered does not exist. Add new user?' 10 30) then
