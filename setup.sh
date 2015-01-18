@@ -1178,14 +1178,16 @@ then
 
 	dialog --title "SABnzbd" --infobox "Adding SABnzbd upstart config" 6 50
 	sleep 2
-	sudo echo 'description "Upstart Script to run sabnzbd as a service on Ubuntu/Debian based systems"' > /etc/init/sabnzbd.conf
-	sudo echo "setuid "$UNAME >> /etc/init/sabnzbd.conf
-	sudo echo "setgid "$UNAME >> /etc/init/sabnzbd.conf
-	sudo echo 'start on runlevel [2345]' >> /etc/init/sabnzbd.conf
-	sudo echo 'stop on runlevel [016]' >> /etc/init/sabnzbd.conf
-	sudo echo 'respawn limit 10 10' >> /etc/init/sabnzbd.conf
-	sudo echo "exec sabnzbdplus -f /home/"$UNAME"/IPVR/.sabnzbd/config.ini -s 0.0.0.0:8085" >> /etc/init/sabnzbd.conf
-
+	cat > /etc/init/sabnzbd.conf << EOF
+	description "Upstart Script to run sabnzbd as a service on Ubuntu/Debian based systems"
+	setuid $UNAME
+	setgid $UNAME
+	start on runlevel [2345]
+	stop on runlevel [016]
+	respawn
+	respawn limit 10 10
+	exec sabnzbdplus -f /home/$UNAME/IPVR/.sabnzbd/config.ini -s 0.0.0.0:8085
+EOF
 	sudo start sabnzbd >> $LOGFILE
 	sleep 5
 	sudo stop sabnzbd >> $LOGFILE
@@ -1253,15 +1255,17 @@ then
 	
 	dialog --title "SONARR" --infobox "Creating new default and init scripts..." 6 50
 	sleep 2
-	sudo echo 'description "Upstart Script to run sonarr as a service on Ubuntu/Debian based systems"' > /etc/init/sonarr.conf
-	sudo echo "setuid "$UNAME >> /etc/init/sonarr.conf
-	sudo echo 'env DIR=/opt/NzbDrone' >> /etc/init/sonarr.conf
-	sudo echo 'setgid nogroup' >> /etc/init/sonarr.conf
-	sudo echo 'start on runlevel [2345]' >> /etc/init/sonarr.conf
-	sudo echo 'stop on runlevel [016]' >> /etc/init/sonarr.conf
-	sudo echo 'respawn limit 10 10' >> /etc/init/sonarr.conf
-	sudo echo 'exec mono $DIR/NzbDrone.exe' >> /etc/init/sonarr.conf
-	 
+	cat > /etc/init/sonarr.conf << EOF
+	description "Upstart Script to run sonarr as a service on Ubuntu/Debian based systems"
+	setuid $UNAME
+	env DIR=/opt/NzbDrone
+	setgid nogroup
+	start on runlevel [2345]
+	stop on runlevel [016]
+	respawn
+	respawn limit 10 10
+	exec mono \$DIR/NzbDrone.exe
+EOF
 	sudo start sonarr >> $LOGFILE
 	
 	while [ ! -f /home/$UNAME/.config/NzbDrone/config.xml ]
@@ -1321,13 +1325,14 @@ then
 
 	dialog --title "COUCHPOTATO" --infobox "Installing upstart configurations" 6 50  
 	sleep 2
-cat << EOF > /etc/init/couchpotato.conf
+cat > /etc/init/couchpotato.conf << EOF
 description "Upstart Script to run couchpotato as a service on Ubuntu/Debian based systems"
-setuid $UNAME >> /etc/init/couchpotato.conf
-setgid $UNAME >> /etc/init/couchpotato.conf
-	sudo echo 'start on runlevel [2345]' >> /etc/init/couchpotato.conf
-	sudo echo 'stop on runlevel [016]' >> /etc/init/couchpotato.conf
-	sudo echo 'respawn limit 10 10' >> /etc/init/couchpotato.conf
+setuid $UNAME
+setgid $UNAME
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+respawn limit 10 10
 exec  /home/$UNAME/IPVR/.couchpotato/CouchPotato.py --config_file /home/$UNAME/IPVR/.couchpotato/settings.conf --data_dir /home/$UNAME/IPVR/.couchpotato/
 EOF
 cat << EOF > /home/$UNAME/IPVR/.couchpotato/settings.conf
@@ -2000,10 +2005,6 @@ sudo service apache2 restart
 
 if [[ "$KODI" == "1" ]]
 then 
-
-clear
-createFile "$LOG_FILE" 0 1
-
 echo ""
 installDependencies
 echo "Loading installer..."
@@ -2034,8 +2035,8 @@ fi
 
 IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
 
-dialog --title "FINISHED" --msgbox "Apache rewrite installed. Use https://$IPADDR/sonarr to access sonarr, same for couchpotato and sabnzbd" 5 50
-dialog --title "FINISHED" --msgbox "All done.  Your IPVR should RESTART within 10-20 seconds" 15 78
+dialog --title "FINISHED" --msgbox "Apache rewrite installed. Use https://$IPADDR/sonarr to access sonarr, same for couchpotato and sabnzbd" 10 50
+dialog --title "FINISHED" --msgbox "All done.  Your IPVR should RESTART within 10-20 seconds" 10 50
 
 sudo start sabnzbd
 sudo start sonarr
