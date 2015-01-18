@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script Name: Knight Cinema installer
 # Author: Joe Knight
-# Version: 0.1 initial build
+# Version: 0.9 testing for beta release. 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the MIT Public License
 #
@@ -10,6 +10,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # DO NOT EDIT ANYTHING UNLESS YOU KNOW WHAT YOU ARE DOING.
+LOGFILE="/var/log/knightcinema.install.log"
 export NCURSES_NO_UTF8_ACS=1
 sudo echo 'Dpkg::Progress-Fancy "1";' > /etc/apt/apt.conf.d/99progressbar
 if [ "$(id -u)" != "0" ]; then
@@ -17,7 +18,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 echo "starting installer"
-sudo apt-get -qq install dialog >> knightcinema.log
+sudo apt-get -y install dialog >> $LOGFILE
 
 if (dialog --title "Knight Cinema" --yesno "Version: 0.9 (January 17th, 2015) Knight Cinema installation will start soon. Please read the following carefully. The script has been confirmed to work on Ubuntu 14.04. 2. While several testing runs identified no known issues, the author cannot be held accountable for any problems that might occur due to the script." 12 78) then
     echo
@@ -154,7 +155,7 @@ function showDialog()
 
 function update()
 {
-    sudo apt-get update  >> knightcinema.log
+    sudo apt-get update  >> $LOGFILE
 }
 
 function createFile()
@@ -183,9 +184,9 @@ function createDirectory()
     if [ ! -d "$DIRECTORY" ];
     then
         if [ "$IS_ROOT" == "0" ]; then
-            mkdir -p "$DIRECTORY"  >> knightcinema.log
+            mkdir -p "$DIRECTORY"  >> $LOGFILE
         else
-            sudo mkdir -p "$DIRECTORY"  >> knightcinema.log
+            sudo mkdir -p "$DIRECTORY"  >> $LOGFILE
         fi
     fi
     
@@ -205,22 +206,22 @@ function handleFileBackup()
     if [ -e "$BACKUP" ];
 	then
 	    if [ "$IS_ROOT" == "1" ]; then
-	        sudo rm "$FILE"  >> knightcinema.log
-		    sudo cp "$BACKUP" "$FILE"  >> knightcinema.log
+	        sudo rm "$FILE"  >> $LOGFILE
+		    sudo cp "$BACKUP" "$FILE"  >> $LOGFILE
 	    else
-		    rm "$FILE"  >> knightcinema.log
-		    cp "$BACKUP" "$FILE"  >> knightcinema.log
+		    rm "$FILE"  >> $LOGFILE
+		    cp "$BACKUP" "$FILE"  >> $LOGFILE
 		fi
 	else
 	    if [ "$IS_ROOT" == "1" ]; then
-		    sudo cp "$FILE" "$BACKUP"  >> knightcinema.log
+		    sudo cp "$FILE" "$BACKUP"  >> $LOGFILE
 		else
-		    cp "$FILE" "$BACKUP"  >> knightcinema.log
+		    cp "$FILE" "$BACKUP"  >> $LOGFILE
 		fi
 	fi
 	
 	if [ "$DELETE_ORIGINAL" == "1" ]; then
-	    sudo rm "$FILE"  >> knightcinema.log
+	    sudo rm "$FILE"  >> $LOGFILE
 	fi
 }
 
@@ -231,9 +232,9 @@ function appendToFile()
     IS_ROOT="$3"
     
     if [ "$IS_ROOT" == "0" ]; then
-        echo "$CONTENT" | tee -a "$FILE"  >> knightcinema.log
+        echo "$CONTENT" | tee -a "$FILE"  >> $LOGFILE
     else
-        echo "$CONTENT" | sudo tee -a "$FILE"  >> knightcinema.log
+        echo "$CONTENT" | sudo tee -a "$FILE"  >> $LOGFILE
     fi
 }
 
@@ -242,7 +243,7 @@ function addRepository()
     REPOSITORY=$@
     KEYSTORE_DIR=$HOME_DIRECTORY".gnupg/"
     createDirectory "$KEYSTORE_DIR" 0 0
-    sudo add-apt-repository -y $REPOSITORY  >> knightcinema.log
+    sudo add-apt-repository -y $REPOSITORY  >> $LOGFILE
 
     if [ "$?" == "0" ]; then
         update
@@ -257,7 +258,7 @@ function addRepository()
 function isPackageInstalled()
 {
     PACKAGE=$@
-    sudo dpkg-query -l $PACKAGE  >> knightcinema.log
+    sudo dpkg-query -l $PACKAGE  >> $LOGFILE
     
     if [ "$?" == "0" ]; then
         echo 1
@@ -275,8 +276,8 @@ function aptInstall()
         showInfo "Skipping installation of $PACKAGE. Already installed."
         echo 1
     else
-        sudo apt-get -f install  >> knightcinema.log
-        sudo apt-get -y install $PACKAGE  >> knightcinema.log
+        sudo apt-get -f install  >> $LOGFILE
+        sudo apt-get -y install $PACKAGE  >> $LOGFILE
         
         if [ "$?" == "0" ]; then
             showInfo "$PACKAGE successfully installed"
@@ -291,7 +292,7 @@ function aptInstall()
 function download()
 {
     URL="$@"
-    wget -q "$URL"  >> knightcinema.log
+    wget -q "$URL"  >> $LOGFILE
 }
 
 function move()
@@ -303,9 +304,9 @@ function move()
     if [ -e "$SOURCE" ];
 	then
 	    if [ "$IS_ROOT" == "0" ]; then
-	        mv "$SOURCE" "$DESTINATION"  >> knightcinema.log
+	        mv "$SOURCE" "$DESTINATION"  >> $LOGFILE
 	    else
-	        sudo mv "$SOURCE" "$DESTINATION"  >> knightcinema.log
+	        sudo mv "$SOURCE" "$DESTINATION"  >> $LOGFILE
 	    fi
 	    
 	    if [ "$?" == "0" ]; then
@@ -324,8 +325,8 @@ function installDependencies()
 {
     echo "-- Installing script dependencies..."
     echo ""
-        sudo apt-get -y install python-software-properties  >> knightcinema.log
-	sudo apt-get -y install dialog software-properties-common  >> knightcinema.log
+        sudo apt-get -y install python-software-properties  >> $LOGFILE
+	sudo apt-get -y install dialog software-properties-common  >> $LOGFILE
 }
 
 function fixLocaleBug()
@@ -361,13 +362,13 @@ function applyXbmcNiceLevelPermissions()
 
 function addUserToRequiredGroups()
 {
-	sudo adduser $KODI_USER video  >> knightcinema.log
-	sudo adduser $KODI_USER audio  >> knightcinema.log
-	sudo adduser $KODI_USER users  >> knightcinema.log
-	sudo adduser $KODI_USER fuse  >> knightcinema.log
-	sudo adduser $KODI_USER cdrom  >> knightcinema.log
-	sudo adduser $KODI_USER plugdev  >> knightcinema.log
-    sudo adduser $KODI_USER dialout  >> knightcinema.log
+	sudo adduser $KODI_USER video  >> $LOGFILE
+	sudo adduser $KODI_USER audio  >> $LOGFILE
+	sudo adduser $KODI_USER users  >> $LOGFILE
+	sudo adduser $KODI_USER fuse  >> $LOGFILE
+	sudo adduser $KODI_USER cdrom  >> $LOGFILE
+	sudo adduser $KODI_USER plugdev  >> $LOGFILE
+    sudo adduser $KODI_USER dialout  >> $LOGFILE
 	showInfo "KODI user added to required groups"
 }
 
@@ -386,7 +387,7 @@ function distUpgrade()
 {
     showInfo "Updating Ubuntu with latest packages (may take a while)..."
 	update
-	sudo apt-get -y dist-upgrade  >> knightcinema.log
+	sudo apt-get -y dist-upgrade  >> $LOGFILE
 	showInfo "Ubuntu installation updated"
 }
 
@@ -400,12 +401,12 @@ function installPowerManagement()
 {
     showInfo "Installing power management packages..."
     createDirectory "$TEMP_DIRECTORY" 1 0
-    sudo apt-get install -y policykit-1  >> knightcinema.log
-    sudo apt-get install -y upower  >> knightcinema.log
-    sudo apt-get install -y udisks  >> knightcinema.log
-    sudo apt-get install -y acpi-support  >> knightcinema.log
-    sudo apt-get install -y consolekit  >> knightcinema.log
-    sudo apt-get install -y pm-utils  >> knightcinema.log
+    sudo apt-get install -y policykit-1  >> $LOGFILE
+    sudo apt-get install -y upower  >> $LOGFILE
+    sudo apt-get install -y udisks  >> $LOGFILE
+    sudo apt-get install -y acpi-support  >> $LOGFILE
+    sudo apt-get install -y consolekit  >> $LOGFILE
+    sudo apt-get install -y pm-utils  >> $LOGFILE
 	download $DOWNLOAD_URL"custom-actions.pkla"
 	createDirectory "$POWERMANAGEMENT_DIR"
     IS_MOVED=$(move $TEMP_DIRECTORY"custom-actions.pkla" "$POWERMANAGEMENT_DIR")
@@ -414,14 +415,14 @@ function installPowerManagement()
 function installAudio()
 {
     showInfo "Installing audio packages....\n!! Please make sure no used channels are muted !!"
-    sudo apt-get install -y linux-sound-base alsa-base alsa-utils  >> knightcinema.log
+    sudo apt-get install -y linux-sound-base alsa-base alsa-utils  >> $LOGFILE
     #sudo alsamixer
 }
 
 function Installnfscommon()
 {
     showInfo "Installing ubuntu package nfs-common (kernel based NFS clinet support)"
-    sudo apt-get install -y nfs-common  >> knightcinema.log
+    sudo apt-get install -y nfs-common  >> $LOGFILE
 }
 
 function installLirc()
@@ -450,7 +451,7 @@ function allowRemoteWakeup()
 	download $DOWNLOAD_URL"remote_wakeup_rules"
 	
 	if [ -e $TEMP_DIRECTORY"remote_wakeup_rules" ]; then
-	    sudo mv $TEMP_DIRECTORY"remote_wakeup_rules" "$REMOTE_WAKEUP_RULES_FILE"  >> knightcinema.log
+	    sudo mv $TEMP_DIRECTORY"remote_wakeup_rules" "$REMOTE_WAKEUP_RULES_FILE"  >> $LOGFILE
 	    showInfo "Remote wakeup rules successfully applied"
 	else
 	    showError "Remote wakeup rules could not be downloaded"
@@ -501,7 +502,7 @@ function installXbmcAddonRepositoriesInstaller()
     createDirectory "$KODI_ADDONS_DIR" 0 0
 
     if [ -e $TEMP_DIRECTORY"plugin.program.repo.installer-1.0.5.tar.gz" ]; then
-        tar -xvzf $TEMP_DIRECTORY"plugin.program.repo.installer-1.0.5.tar.gz" -C "$KODI_ADDONS_DIR"  >> knightcinema.log
+        tar -xvzf $TEMP_DIRECTORY"plugin.program.repo.installer-1.0.5.tar.gz" -C "$KODI_ADDONS_DIR"  >> $LOGFILE
         
         if [ "$?" == "0" ]; then
 	        showInfo "Addon Repositories Installer addon successfully installed"
@@ -515,9 +516,9 @@ function installXbmcAddonRepositoriesInstaller()
 
 function configureAtiDriver()
 {
-    sudo aticonfig --initial -f  >> knightcinema.log
-    sudo aticonfig --sync-vsync=on  >> knightcinema.log
-    sudo aticonfig --set-pcs-u32=MCIL,HWUVD_H264Level51Support,1  >> knightcinema.log
+    sudo aticonfig --initial -f  >> $LOGFILE
+    sudo aticonfig --sync-vsync=on  >> $LOGFILE
+    sudo aticonfig --set-pcs-u32=MCIL,HWUVD_H264Level51Support,1  >> $LOGFILE
 }
 
 function ChooseATIDriver()
@@ -572,15 +573,15 @@ function InstallRadeonOSS()
 
 function disbaleAtiUnderscan()
 {
-	sudo kill $(pidof X)  >> knightcinema.log
-	sudo aticonfig --set-pcs-val=MCIL,DigitalHDTVDefaultUnderscan,0  >> knightcinema.log
+	sudo kill $(pidof X)  >> $LOGFILE
+	sudo aticonfig --set-pcs-val=MCIL,DigitalHDTVDefaultUnderscan,0  >> $LOGFILE
     showInfo "Underscan successfully disabled"
 }
 
 function enableAtiUnderscan()
 {
-	sudo kill $(pidof X)  >> knightcinema.log
-	sudo aticonfig --set-pcs-val=MCIL,DigitalHDTVDefaultUnderscan,1  >> knightcinema.log
+	sudo kill $(pidof X)  >> $LOGFILE
+	sudo aticonfig --set-pcs-val=MCIL,DigitalHDTVDefaultUnderscan,1  >> $LOGFILE
     showInfo "Underscan successfully enabled"
 }
 
@@ -620,7 +621,7 @@ function InstallLTSEnablementStack()
 function LTSEnablementStack()
 {
 showInfo "Installing ubuntu LTS Enablement Stack..."
-sudo apt-get install --install-recommends -y linux-generic-lts-raring xserver-xorg-lts-raring libgl1-mesa-glx-lts-raring  >> knightcinema.log
+sudo apt-get install --install-recommends -y linux-generic-lts-raring xserver-xorg-lts-raring libgl1-mesa-glx-lts-raring  >> $LOGFILE
 # HACK: dpkg is still processsing during next functions, allow some time to settle
 sleep 2
 showInfo "ubuntu LTS Enablement Stack install completed..."
@@ -738,7 +739,7 @@ function installAutomaticDistUpgrade()
 	
 	if [ "$IS_MOVED" == "1" ]; then
 	    IS_INSTALLED=$(aptInstall cron)
-	    sudo chmod +x "$DIST_UPGRADE_FILE"  >> knightcinema.log
+	    sudo chmod +x "$DIST_UPGRADE_FILE"  >> $LOGFILE
 	    handleFileBackup "$CRONTAB_FILE" 1
 	    appendToFile "$CRONTAB_FILE" "0 */4  * * * root  $DIST_UPGRADE_FILE >> $DIST_UPGRADE_LOG_FILE"
 	else
@@ -750,19 +751,19 @@ function removeAutorunFiles()
 {
     if [ -e "$KODI_INIT_FILE" ]; then
         showInfo "Removing existing autorun script..."
-        sudo update-rc.d kodi remove  >> knightcinema.log
-        sudo rm "$KODI_INIT_FILE"  >> knightcinema.log
+        sudo update-rc.d kodi remove  >> $LOGFILE
+        sudo rm "$KODI_INIT_FILE"  >> $LOGFILE
 
         if [ -e "$KODI_INIT_CONF_FILE" ]; then
-		    sudo rm "$KODI_INIT_CONF_FILE"  >> knightcinema.log
+		    sudo rm "$KODI_INIT_CONF_FILE"  >> $LOGFILE
 	    fi
 	    
 	    if [ -e "$KODI_CUSTOM_EXEC" ]; then
-	        sudo rm "$KODI_CUSTOM_EXEC"  >> knightcinema.log
+	        sudo rm "$KODI_CUSTOM_EXEC"  >> $LOGFILE
 	    fi
 	    
 	    if [ -e "$KODI_XSESSION_FILE" ]; then
-	        sudo rm "$KODI_XSESSION_FILE"  >> knightcinema.log
+	        sudo rm "$KODI_XSESSION_FILE"  >> $LOGFILE
 	    fi
 	    
 	    showInfo "Old autorun script successfully removed"
@@ -780,7 +781,7 @@ function installXbmcUpstartScript()
 	    IS_MOVED=$(move $TEMP_DIRECTORY"kodi_upstart_script_2" "$KODI_INIT_CONF_FILE")
 
 	    if [ "$IS_MOVED" == "1" ]; then
-	        sudo ln -s "$UPSTART_JOB_FILE" "$KODI_INIT_FILE"  >> knightcinema.log
+	        sudo ln -s "$UPSTART_JOB_FILE" "$KODI_INIT_FILE"  >> $LOGFILE
 	    else
 	        showError "KODI upstart configuration failed"
 	    fi
@@ -801,7 +802,7 @@ function installNyxBoardKeymap()
     fi
 
     if [ -e $TEMP_DIRECTORY"nyxboard.tar.gz" ]; then
-        tar -xvzf $TEMP_DIRECTORY"nyxboard.tar.gz" -C "$KODI_KEYMAPS_DIR"  >> knightcinema.log
+        tar -xvzf $TEMP_DIRECTORY"nyxboard.tar.gz" -C "$KODI_KEYMAPS_DIR"  >> $LOGFILE
         
         if [ "$?" == "0" ]; then
 	        showInfo "Pulse-Eight Motorola NYXboard advanced keymap successfully applied"
@@ -821,8 +822,8 @@ function installXbmcBootScreen()
     download $DOWNLOAD_URL"plymouth-theme-kodi-logo.deb"
     
     if [ -e $TEMP_DIRECTORY"plymouth-theme-kodi-logo.deb" ]; then
-        sudo dpkg -i $TEMP_DIRECTORY"plymouth-theme-kodi-logo.deb"  >> knightcinema.log
-        update-alternatives --install /lib/plymouth/themes/default.plymouth default.plymouth /lib/plymouth/themes/kodi-logo/kodi-logo.plymouth 100  >> knightcinema.log
+        sudo dpkg -i $TEMP_DIRECTORY"plymouth-theme-kodi-logo.deb"  >> $LOGFILE
+        update-alternatives --install /lib/plymouth/themes/default.plymouth default.plymouth /lib/plymouth/themes/kodi-logo/kodi-logo.plymouth 100  >> $LOGFILE
         handleFileBackup "$INITRAMFS_SPLASH_FILE" 1 1
         createFile "$INITRAMFS_SPLASH_FILE" 1 1
         appendToFile "$INITRAMFS_SPLASH_FILE" "FRAMEBUFFER=y"
@@ -838,7 +839,7 @@ function applyScreenResolution()
     
     showInfo "Applying bootscreen resolution (will take a minute or so)..."
     handleFileBackup "$GRUB_HEADER_FILE" 1 0
-    sudo sed -i '/gfxmode=/ a\  set gfxpayload=keep' "$GRUB_HEADER_FILE"  >> knightcinema.log
+    sudo sed -i '/gfxmode=/ a\  set gfxpayload=keep' "$GRUB_HEADER_FILE"  >> $LOGFILE
     GRUB_CONFIG="nomodeset usbcore.autosuspend=-1 video=uvesafb:mode_option=$RESOLUTION-24,mtrr=3,scroll=ywrap"
     
     if [[ $GFX_CARD == INTEL ]]; then
@@ -856,7 +857,7 @@ function applyScreenResolution()
     handleFileBackup "$INITRAMFS_MODULES_FILE" 1 0
     appendToFile "$INITRAMFS_MODULES_FILE" "uvesafb mode_option=$RESOLUTION-24 mtrr=3 scroll=ywrap"
     
-    sudo update-grub  >> knightcinema.log
+    sudo update-grub  >> $LOGFILE
     sudo update-initramfs -u > /dev/null
     
     if [ "$?" == "0" ]; then
@@ -870,7 +871,7 @@ function installLmSensors()
 {
     showInfo "Installing temperature monitoring package (will apply all defaults)..."
     aptInstall lm-sensors
-    sudo yes "" | sensors-detect  >> knightcinema.log
+    sudo yes "" | sensors-detect  >> $LOGFILE
 
     if [ ! -e "$KODI_ADVANCEDSETTINGS_FILE" ]; then
 	    createDirectory "$TEMP_DIRECTORY" 1 0
@@ -1027,13 +1028,13 @@ function optimizeInstallation()
 
     sudo echo "none /tmp tmpfs defaults 0 0" >> /etc/fstab
 
-    sudo service apparmor stop  >> knightcinema.log
+    sudo service apparmor stop  >> $LOGFILE
     sleep 2
-    sudo service apparmor teardown  >> knightcinema.log
+    sudo service apparmor teardown  >> $LOGFILE
     sleep 2
-    sudo update-rc.d -f apparmor remove  >> knightcinema.log	
+    sudo update-rc.d -f apparmor remove  >> $LOGFILE	
     sleep 2
-    sudo apt-get purge apparmor -y  >> knightcinema.log
+    sudo apt-get purge apparmor -y  >> $LOGFILE
     sleep 3
     
     createDirectory "$TEMP_DIRECTORY" 1 0
@@ -1050,17 +1051,17 @@ function optimizeInstallation()
 function cleanUp()
 {
     showInfo "Cleaning up..."
-	sudo apt-get -y autoremove  >> knightcinema.log
+	sudo apt-get -y autoremove  >> $LOGFILE
         sleep 1
-	sudo apt-get -y autoclean  >> knightcinema.log
+	sudo apt-get -y autoclean  >> $LOGFILE
         sleep 1
-	sudo apt-get -y clean  >> knightcinema.log
+	sudo apt-get -y clean  >> $LOGFILE
         sleep 1
-        sudo chown -R kodi:kodi /home/kodi/.kodi  >> knightcinema.log
+        sudo chown -R kodi:kodi /home/kodi/.kodi  >> $LOGFILE
         showInfo "fixed permissions for kodi userdata folder"
 	
 	if [ -e "$TEMP_DIRECTORY" ]; then
-	    sudo rm -R "$TEMP_DIRECTORY"  >> knightcinema.log
+	    sudo rm -R "$TEMP_DIRECTORY"  >> $LOGFILE
 	fi
 }
 
@@ -1078,7 +1079,7 @@ function rebootMachine()
             echo ""
             echo "Installation complete. Rebooting..."
             echo ""
-            sudo reboot  >> knightcinema.log
+            sudo reboot  >> $LOGFILE
 	        ;;
 	    1) 
 	        showInfo "Installation complete. Not rebooting."
@@ -1156,24 +1157,24 @@ sudo mkdir /home/$UNAME/IPVR/.sabnzbd
 sudo chown -R $UNAME:$UNAME /home/$UNAME/IPVR
 sudo chmod -R 775 /home/$UNAME/IPVR
 	dialog --title "Knight IPVR" --infobox "Adding repositories" 6 50
-	sudo add-apt-repository -y ppa:jcfp/ppa >> knightcinema.log
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC >> knightcinema.log
-	sudo echo "deb http://update.nzbdrone.com/repos/apt/debian master main" | sudo tee -a /etc/apt/sources.list >> knightcinema.log
+	sudo add-apt-repository -y ppa:jcfp/ppa >> $LOGFILE
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC >> $LOGFILE
+	sudo echo "deb http://update.nzbdrone.com/repos/apt/debian master main" | sudo tee -a /etc/apt/sources.list >> $LOGFILE
 
 	dialog --title "Knight IPVR" --infobox "Updating Packages" 6 50
-	sudo apt-get -qq update >> knightcinema.log
+	sudo apt-get -y update >> $LOGFILE
 if [[ "$SAB" == "1" ]] 
 then
 
 	dialog --title "SABnzbd" --infobox "Installing SABnzbd" 6 50
-	sudo apt-get -qq install sabnzbdplus >> knightcinema.log
+	sudo apt-get -y install sabnzbdplus >> $LOGFILE
 
 	dialog --title "SABnzbd" --infobox "Stopping SABnzbd" 6 50
 	sleep 2
-	sudo killall sabnzbd* >> knightcinema.log
+	sudo killall sabnzbd* >> $LOGFILE
 
 	dialog --title "SABnzbd" --infobox "Removing Standard init scripts" 6 50
-	sudo update-rc.d -f sabnzbdplus remove  >> knightcinema.log
+	sudo update-rc.d -f sabnzbdplus remove  >> $LOGFILE
 
 	dialog --title "SABnzbd" --infobox "Adding SABnzbd upstart config" 6 50
 	sleep 2
@@ -1185,9 +1186,9 @@ then
 	sudo echo 'respawn limit 10 10' >> /etc/init/sabnzbd.conf
 	sudo echo "exec sabnzbdplus -f /home/"$UNAME"/IPVR/.sabnzbd/config.ini -s 0.0.0.0:8085" >> /etc/init/sabnzbd.conf
 
-	sudo start sabnzbd >> knightcinema.log
+	sudo start sabnzbd >> $LOGFILE
 	sleep 5
-	sudo stop sabnzbd >> knightcinema.log
+	sudo stop sabnzbd >> $LOGFILE
 	
 	dialog --title "SABnzbd" --infobox "Configuring SABnzbd" 6 50
 	sudo echo "username = "$USERNAME > /home/$UNAME/IPVR/.sabnzbd/config.ini
@@ -1239,16 +1240,16 @@ if [[ "$SONARR" == "1" ]]
 then
 
 	dialog --title "SONARR" --infobox "Installing mono \ This may take awhile. Please be paient." 6 50
-	sudo apt-get -qq install mono-complete  >> knightcinema.log
+	sudo apt-get -y install mono-complete  >> $LOGFILE
 
 	dialog --title "SONARR" --infobox "Checking for previous versions of NZBget/Sonarr..." 6 50
 	sleep 2
-	sudo killall sonarr* >> knightcinema.log
-	sudo killall nzbget* >> knightcinema.log
+	sudo killall sonarr* >> $LOGFILE
+	sudo killall nzbget* >> $LOGFILE
 
 	dialog --title "SONARR" --infobox "Downloading latest Sonarr..." 6 50
 	sleep 2
-	sudo apt-get -qq install nzbdrone >> knightcinema.log
+	sudo apt-get -y install nzbdrone >> $LOGFILE
 	
 	dialog --title "SONARR" --infobox "Creating new default and init scripts..." 6 50
 	sleep 2
@@ -1261,7 +1262,7 @@ then
 	sudo echo 'respawn limit 10 10' >> /etc/init/sonarr.conf
 	sudo echo 'exec mono $DIR/NzbDrone.exe' >> /etc/init/sonarr.conf
 	 
-	sudo start sonarr >> knightcinema.log
+	sudo start sonarr >> $LOGFILE
 	
 	while [ ! -f /home/$UNAME/.config/NzbDrone/config.xml ]
 do
@@ -1272,7 +1273,7 @@ done
 do
   sleep 2
 done
-	sudo stop sonarr >> knightcinema.log
+	sudo stop sonarr >> $LOGFILE
 
 	sqlite3 /home/$UNAME/.config/NzbDrone/nzbdrone.db "UPDATE Config SET value = '"$UNAME"' WHERE Key = 'chownuser'"
 	sqlite3 /home/$UNAME/.config/NzbDrone/nzbdrone.db "UPDATE Config SET value = '"$UNAME"' WHERE Key = 'chowngroup'"
@@ -1306,17 +1307,17 @@ if [[ "$CP" == "1" ]]
 then
 
 	dialog --title "COUCHPOTATO" --infobox "Installing Git and Python" 6 50  
-	sudo apt-get -qq install git-core python >> knightcinema.log
+	sudo apt-get -y install git-core python >> $LOGFILE
 
 
 	dialog --title "COUCHPOTATO" --infobox "Killing and version of couchpotato currently running" 6 50  
 	sleep 2
-	sudo killall couchpotato* >> knightcinema.log
+	sudo killall couchpotato* >> $LOGFILE
 
 
 	dialog --title "COUCHPOTATO" --infobox "Downloading the latest version of CouchPotato" 6 50  
 	sleep 2
-	git clone git://github.com/RuudBurger/CouchPotatoServer.git /home/$UNAME/IPVR/.couchpotato >> knightcinema.log
+	git clone git://github.com/RuudBurger/CouchPotatoServer.git /home/$UNAME/IPVR/.couchpotato >> $LOGFILE
 
 	dialog --title "COUCHPOTATO" --infobox "Installing upstart configurations" 6 50  
 	sleep 2
@@ -1940,7 +1941,7 @@ sudo chmod -R 775 /home/$UNAME/IPVR/
 sudo chown -R $UNAME:$UNAME /home/$UNAME/IPVR/
 
 dialog --title "Apache" --infobox "Installing Apache" 6 50
-sudo apt-get -qq install apache2 > /dev/null 2>&1
+sudo apt-get -y install apache2 > /dev/null 2>&1
 
 sudo a2enmod proxy > /dev/null 2>&1
 sudo a2enmod proxy_http > /dev/null 2>&1
