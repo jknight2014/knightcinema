@@ -1,0 +1,8 @@
+description "Upstart Script to run sabnzbd as a service on Ubuntu/Debian based systems"
+setuid $UNAME
+setgid $UNAME
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+respawn limit 10 10
+exec sabnzbdplus -f /home/$UNAME/IPVR/.sabnzbd/config.ini -s 0.0.0.0:8085

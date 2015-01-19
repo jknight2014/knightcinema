@@ -74,7 +74,7 @@ fi
 if [[ $APPS == *KODI* ]]
 then
 KODI=1
-if getent passwd kodi > /dev/null 2>&1; then
+if getent passwd kodi >> $LOGFILE; then
 	echo "User KODI already exists"
 	KODI_USER="kodi"
 else
@@ -1161,12 +1161,12 @@ mkdir /home/$UNAME/IPVR
 mkdir /home/$UNAME/IPVR/.sabnzbd
 chown -R $UNAME:$UNAME /home/$UNAME/IPVR
 chmod -R 775 /home/$UNAME/IPVR
-	dialog --title "Knight IPVR" --infobox "Adding repositories" 6 50
+	dialog --title "Knight Cinema" --infobox "Adding repositories" 6 50
 	add-apt-repository -y ppa:jcfp/ppa >> $LOGFILE
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FDA5DFFC >> $LOGFILE
 	echo "deb http://update.nzbdrone.com/repos/apt/debian master main" | tee -a /etc/apt/sources.list >> $LOGFILE
 
-	dialog --title "Knight IPVR" --infobox "Updating Packages" 6 50
+	dialog --title "Knight Cinema" --infobox "Updating Packages" 6 50
 	apt-get -y update >> $LOGFILE
 if [[ "$SAB" == "1" ]] 
 then
@@ -1194,49 +1194,8 @@ EOF
 	sleep 5
 	stop sabnzbd >> $LOGFILE
 	dialog --title "SABnzbd" --infobox "Configuring SABnzbd" 6 50
-	echo "username = "$USERNAME > /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "password = "$PASSWORD >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "api_key = "$API >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "complete_dir = "$DIR"/Downloads/Complete" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "download_dir = "$DIR"/Downloads/Incomplete" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[servers]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[["$USENETHOST"]]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "username = "$USENETUSR >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "enable = 1" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "name = "$USENETHOST >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "fillserver = 0" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "connections = "$USENETCONN >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "ssl = "$USENETSSL >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "host = "$USENETHOST >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "timeout = 120" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "password = "$USENETPASS >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "optional = 0" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "port = "$USENETPORT >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "retention = 0" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[categories]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[[*]]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "priority = 0" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "pp = 3" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "name = *" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "script = None" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'newzbin = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'dir = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[[tv]]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "priority = -100" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'pp = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "name = TV" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "script = Default" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'newzbin = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "dir = "$DIR"/Downloads/Complete/TVShows" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "[[movies]]" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "priority = -100" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'pp = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "name = Movies" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "script = Default" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo 'newzbin = ""' >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-	echo "dir = "$DIR"/Downloads/Complete/Movies" >> /home/$UNAME/IPVR/.sabnzbd/config.ini
-
-	dialog --infobox "SABnzbd has finished installing. Continuing with Sonarr install." 6 50
+	makeconfig sabnzbd.template > /home/$UNAME/IPVR/.sabnzbd/config.ini
+	dialog --infobox "SABnzbd has finished installing." 6 50
 fi
 
 if [[ "$SONARR" == "1" ]] 
@@ -1287,44 +1246,27 @@ done
 	sqlite3 /home/$UNAME/.config/NzbDrone/nzbdrone.db "INSERT INTO Indexers VALUES (NULL,'"$INDEXNAME"','Newznab,'{ \"url\": \""$INDEXHOST"\", \"apiKey\": \""$INDEXAPI"\, \"categories\": [   5030,   5040 ], \"animeCategories\": []  }','NewznabSettings','1','1')"
 	sqlite3 /home/$UNAME/.config/NzbDrone/nzbdrone.db "INSERT INTO RootFolders VALUES (NULL,'"$DIR"/TVShows')"
 
-	echo '<?xml version="1.0" encoding="utf-8" standalone="yes"?>' > /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "<Config>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <Port>8989</Port>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <SslPort>9898</SslPort>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <EnableSsl>False</EnableSsl>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <LaunchBrowser>False</LaunchBrowser>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <ApiKey>32cc1aa3d523445c8612bd5d130ba74a</ApiKey>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <AuthenticationEnabled>True</AuthenticationEnabled>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <Branch>torrents</Branch>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <Username>"$USERNAME"</Username>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <Password>"$PASSWORD"</Password>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <LogLevel>Trace</LogLevel>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <SslCertHash>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  </SslCertHash>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <UrlBase>sonarr</UrlBase>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <UpdateMechanism>BuiltIn</UpdateMechanism>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "  <UpdateAutomatically>True</UpdateAutomatically>" >> /home/$UNAME/.config/NzbDrone/config.xml 
-	echo "</Config>" >> /home/$UNAME/.config/NzbDrone/config.xml 
+	makeconfig sonarr.template > /home/$UNAME/.config/NzbDrone/config.xml
 
-	dialog --title "FINISHED" --infobox "Sonarr has finished installing. Continuing with CouchPotato install." 6 50
+	dialog --title "FINISHED" --infobox "Sonarr has finished installing." 6 50
 fi
 if [[ "$CP" == "1" ]] 
 then
 
-	dialog --title "COUCHPOTATO" --infobox "Installing Git and Python" 6 50  
+	dialog --title "Knight Cinema" --infobox "Installing Git and Python" 6 50  
 	apt-get -y install git-core python >> $LOGFILE
 
 
-	dialog --title "COUCHPOTATO" --infobox "Killing and version of couchpotato currently running" 6 50  
+	dialog --title "Knight Cinema" --infobox "Killing and version of couchpotato currently running" 6 50  
 	sleep 2
 	killall couchpotato* >> $LOGFILE
 
 
-	dialog --title "COUCHPOTATO" --infobox "Downloading the latest version of CouchPotato" 6 50  
+	dialog --title "Knight Cinema" --infobox "Downloading the latest version of CouchPotato" 6 50  
 	sleep 2
 	git clone git://github.com/RuudBurger/CouchPotatoServer.git /home/$UNAME/IPVR/.couchpotato >> $LOGFILE
 
-	dialog --title "COUCHPOTATO" --infobox "Installing upstart configurations" 6 50  
+	dialog --title "Knight Cinema" --infobox "Installing upstart configurations" 6 50  
 	sleep 2
 cat > /etc/init/couchpotato.conf << EOF
 description "Upstart Script to run couchpotato as a service on Ubuntu/Debian based systems"
@@ -1336,623 +1278,19 @@ respawn
 respawn limit 10 10
 exec  /home/$UNAME/IPVR/.couchpotato/CouchPotato.py --config_file /home/$UNAME/IPVR/.couchpotato/settings.conf --data_dir /home/$UNAME/IPVR/.couchpotato/
 EOF
-cat << EOF > /home/$UNAME/IPVR/.couchpotato/settings.conf
-[core] 
-api_key = $API
-username = $USERNAME 
-ssl_key =  
-ssl_cert =  
-data_dir =  
-permission_folder = 0755 
-development = 0 
-url_base = /couchpotato 
-debug = 0 
-launch_browser = 0 
-password = $PASSWORD
-port = 5050 
-permission_file = 0755 
-show_wizard = 0 
- 
-[download_providers] 
- 
-[updater] 
-notification = True 
-enabled = True 
-git_command = git 
-automatic = True 
- 
-[automation] 
-rating = 7.0 
-votes = 1000 
-hour = 12 
-required_genres =  
-year = 2011 
-ignored_genres =  
- 
-[manage] 
-startup_scan = True 
-library_refresh_interval = 0 
-cleanup = True 
-enabled = 1 
-library = $DIR/Movies/ 
- 
-[renamer] 
-nfo_name = <filename>.orig.<ext> 
-from = $DIR/Downloads/Complete/Movies/ 
-force_every = 1 
-move_leftover = False 
-to = $DIR/Movies/ 
-file_name = <thename><cd>.<ext> 
-enabled = 1 
-next_on_failed = True 
-default_file_action = move 
-unrar = 1 
-rename_nfo = True 
-cleanup = False 
-separator =  
-folder_name = <namethe> (<year>) 
-run_every = 1 
-foldersep =  
-file_action = move 
-ntfs_permission = False 
-unrar_path =  
-unrar_modify_date = 1 
-check_space = True 
- 
-[subtitle] 
-languages = en 
-force = False 
-enabled = 1 
- 
-[trailer] 
-quality = 720p 
-enabled = False 
-name = <filename>-trailer 
- 
-[blackhole] 
-directory = /home/$UNAME 
-manual = 0 
-enabled = 0 
-create_subdir = 0 
-use_for = both 
- 
-[deluge] 
-username =  
-delete_failed = True 
-completed_directory =  
-manual = 0 
-enabled = 0 
-label =  
-paused = False 
-host = localhost:58846 
-delete_files = True 
-directory =  
-remove_complete = True 
-password =  
- 
-[nzbget] 
-username = admin 
-category = Movies 
-delete_failed = True 
-manual = 0 
-enabled = 1 
-priority = 0 
-ssl = 0 
-host = localhost:6789 
-password = $PASSWORD
- 
-[nzbvortex] 
-group =  
-delete_failed = True 
-manual = False 
-enabled = 0 
-host = https://localhost:4321 
-api_key =  
- 
-[pneumatic] 
-directory =  
-manual = 0 
-enabled = 0 
- 
-[qbittorrent] 
-username =  
-manual = 0 
-enabled = 0 
-paused = False 
-host = http://localhost:8080/ 
-delete_files = True 
-remove_complete = False 
-password =  
- 
-[rtorrent] 
-username =  
-rpc_url = RPC2 
-manual = 0 
-enabled = 0 
-label =  
-paused = False 
-ssl = 0 
-host = localhost:80 
-delete_files = True 
-directory =  
-remove_complete = False 
-password =  
- 
-[sabnzbd] 
-category = Movies 
-delete_failed = True 
-manual = False 
-enabled = 1 
-priority = 0 
-ssl = 0 
-host = localhost:8085 
-remove_complete = False 
-api_key = $API 
- 
-[synology] 
-username =  
-manual = 0 
-destination =  
-enabled = 0 
-host = localhost:5000 
-password =  
-use_for = both 
- 
-[transmission] 
-username = admin 
-stalled_as_failed = 0 
-delete_failed = True 
-rpc_url = transmission 
-manual = 0 
-enabled = 0 
-paused = False 
-host = http://localhost:9091 
-delete_files = True 
-directory = /data/Downloads/Complete/Movies/ 
-remove_complete = True 
-password = $PASSWORD
- 
-[utorrent] 
-username =  
-delete_failed = True 
-manual = 0 
-enabled = 0 
-label =  
-paused = False 
-host = localhost:8000 
-delete_files = True 
-remove_complete = True 
-password =  
- 
-[notification_providers] 
- 
-[boxcar2] 
-token =  
-enabled = 0 
-on_snatch = 0 
- 
-[email] 
-starttls = 0 
-smtp_pass =  
-on_snatch = 0 
-from =  
-to =  
-smtp_port = 25 
-enabled = 0 
-smtp_server =  
-smtp_user =  
-ssl = 0 
- 
-[growl] 
-password =  
-on_snatch = False 
-hostname =  
-enabled = 0 
-port =  
- 
-[nmj] 
-host = localhost 
-enabled = 0 
-mount =  
-database =  
- 
-[notifymyandroid] 
-priority = 0 
-dev_key =  
-api_key =  
-enabled = 0 
-on_snatch = 0 
- 
-[notifymywp] 
-priority = 0 
-dev_key =  
-api_key =  
-enabled = 0 
-on_snatch = 0 
- 
-[plex] 
-on_snatch = 0 
-clients =  
-enabled = 0 
-media_server = localhost 
- 
-[prowl] 
-priority = 0 
-on_snatch = 0 
-api_key =  
-enabled = 0 
- 
-[pushalot] 
-auth_token =  
-important = 0 
-enabled = 0 
-silent = 0 
-on_snatch = 0 
- 
-[pushbullet] 
-on_snatch = 0 
-api_key =  
-enabled = 0 
-devices =  
- 
-[pushover] 
-sound =  
-on_snatch = 0 
-user_key =  
-enabled = 0 
-priority = 0 
-api_token = YkxHMYDZp285L265L3IwH3LmzkTaCy 
- 
-[synoindex] 
-enabled = 0 
- 
-[toasty] 
-on_snatch = 0 
-api_key =  
-enabled = 0 
- 
-[trakt] 
-remove_watchlist_enabled = False 
-notification_enabled = False 
-automation_password =  
-automation_enabled = False 
-automation_username =  
-automation_api_key =  
- 
-[twitter] 
-on_snatch = 0 
-screen_name =  
-enabled = 0 
-access_token_key =  
-mention =  
-access_token_secret =  
-direct_message = 0 
- 
-[$UNAME] 
-username = $USERNAME >> /home/$UNAME/IPVR/.couchpotato/settings.conf 
-on_snatch = False 
-force_full_scan = 0 
-only_first = 0 
-enabled = 1 
-remote_dir_scan = 0 
-host = localhost:8080 
-password = $PASSWORD >> /home/$UNAME/IPVR/.couchpotato/settings.conf 
-meta_disc_art_name = disc.png 
-meta_extra_thumbs_name = extrathumbs/thumb<i>.jpg 
-meta_thumbnail = True 
-meta_extra_fanart = 1 
-meta_logo = 1 
-meta_enabled = 1 
-meta_landscape_name = landscape.jpg 
-meta_nfo_name = %s.nfo 
-meta_banner_name = banner.jpg 
-meta_landscape = 1 
-meta_extra_fanart_name = extrafanart/extrafanart<i>.jpg 
-meta_nfo = True 
-meta_fanart = True 
-meta_thumbnail_name = %s.tbn 
-meta_url_only = False 
-meta_fanart_name = %s-fanart.jpg 
-meta_logo_name = logo.png 
-meta_banner = False 
-meta_clear_art = False 
-meta_clear_art_name = clearart.png 
-meta_extra_thumbs = 1 
-meta_disc_art = 1 
- 
-[xmpp] 
-username =  
-on_snatch = 0 
-hostname = talk.google.com 
-enabled = 0 
-to =  
-password =  
-port = 5222 
- 
-[nzb_providers] 
- 
-[binsearch] 
-enabled =  
-extra_score = 0 
- 
-[newznab] 
-use = 1,0,0,0,0 
-extra_score = 10,0,0,0,0 
-enabled = 1 
-host = $INDEXHOST,api.nzb.su,api.dognzb.cr,nzbs.org,https://api.nzbgeek.info 
-custom_tag = ,,,, 
-api_key = $INDEXAPI,,,, 
- 
-[nzbclub] 
-enabled =  
-extra_score = 0 
- 
-[omgwtfnzbs] 
-username =  
-api_key =  
-enabled =  
-extra_score = 20 
- 
-[torrent_providers] 
- 
-[awesomehd] 
-seed_time = 40 
-extra_score = 20 
-only_internal = 1 
-passkey =  
-enabled = False 
-favor = both 
-prefer_internal = 1 
-seed_ratio = 1 
- 
-[bithdtv] 
-username =  
-seed_time = 40 
-extra_score = 20 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[bitsoup] 
-username =  
-seed_time = 40 
-extra_score = 20 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[hdbits] 
-username =  
-seed_time = 40 
-extra_score = 0 
-passkey =  
-enabled = False 
-seed_ratio = 1 
- 
-[ilovetorrents] 
-username =  
-seed_time = 40 
-extra_score = 0 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[iptorrents] 
-username =  
-freeleech = 0 
-extra_score = 0 
-enabled = False 
-seed_time = 40 
-password =  
-seed_ratio = 1 
- 
-[kickasstorrents] 
-domain =  
-seed_time = 0 
-extra_score = 0 
-enabled = 0 
-only_verified = False 
-seed_ratio = 0 
- 
-[passthepopcorn] 
-username =  
-domain =  
-seed_time = 40 
-extra_score = 20 
-passkey =  
-prefer_scene = 0 
-enabled = False 
-prefer_golden = 1 
-require_approval = 0 
-password =  
-seed_ratio = 1 
-prefer_freeleech = 1 
- 
-[sceneaccess] 
-username =  
-seed_time = 40 
-extra_score = 20 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[thepiratebay] 
-seed_time = 1 
-domain =  
-enabled = 0 
-seed_ratio = .5 
-extra_score = 0 
- 
-[torrentbytes] 
-username =  
-seed_time = 40 
-extra_score = 20 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[torrentday] 
-username =  
-seed_time = 40 
-extra_score = 0 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[torrentleech] 
-username =  
-seed_time = 40 
-extra_score = 20 
-enabled = False 
-password =  
-seed_ratio = 1 
- 
-[torrentpotato] 
-use =  
-seed_time = 40 
-name =  
-extra_score = 0 
-enabled = False 
-host =  
-pass_key = , 
-seed_ratio = 1 
- 
-[torrentshack] 
-username =  
-seed_time = 40 
-extra_score = 0 
-enabled = False 
-scene_only = False 
-password =  
-seed_ratio = 1 
- 
-[torrentz] 
-verified_only = True 
-extra_score = 0 
-minimal_seeds = 1 
-enabled = 0 
-seed_time = 40 
-seed_ratio = 1 
- 
-[yify] 
-seed_time = 40 
-domain =  
-enabled = 0 
-seed_ratio = 1 
-extra_score = 0 
- 
-[searcher] 
-preferred_method = nzb 
-required_words =  
-ignored_words = german, dutch, french, truefrench, danish, swedish, spanish, italian, korean, dubbed, swesub, korsub, dksubs, vain 
-preferred_words =  
- 
-[nzb] 
-retention = 1500 
- 
-[torrent] 
-minimum_seeders = 1 
- 
-[charts] 
-hide_wanted = False 
-hide_library = False 
-max_items = 5 
- 
-[automation_providers] 
- 
-[bluray] 
-automation_enabled = False 
-chart_display_enabled = True 
-backlog = False 
- 
-[flixster] 
-automation_ids_use =  
-automation_enabled = False 
-automation_ids =  
- 
-[goodfilms] 
-automation_enabled = False 
-automation_username =  
- 
-[imdb] 
-automation_charts_top250 = False 
-chart_display_boxoffice = True 
-chart_display_top250 = False 
-automation_enabled = False 
-chart_display_rentals = True 
-automation_urls_use =  
-automation_urls =  
-automation_providers_enabled = False 
-automation_charts_rentals = True 
-chart_display_theater = False 
-automation_charts_theater = True 
-chart_display_enabled = True 
-automation_charts_boxoffice = True 
- 
-[itunes] 
-automation_enabled = False 
-automation_urls_use = , 
-automation_urls = https://itunes.apple.com/rss/topmovies/limit=25/xml, 
- 
-[kinepolis] 
-automation_enabled = False 
- 
-[letterboxd] 
-automation_enabled = False 
-automation_urls_use =  
-automation_urls =  
- 
-[moviemeter] 
-automation_enabled = False 
- 
-[moviesio] 
-automation_enabled = False 
-automation_urls_use =  
-automation_urls =  
- 
-[popularmovies] 
-automation_enabled = False 
- 
-[rottentomatoes] 
-automation_enabled = False 
-tomatometer_percent = 80 
-automation_urls_use = 1 
-automation_urls = http://www.rottentomatoes.com/syndication/rss/in_theaters.xml 
- 
-[themoviedb] 
-api_key = 9b939aee0aaafc12a65bf448e4af9543 
- 
-[mediabrowser] 
-meta_enabled = False 
- 
-[sonyps3] 
-meta_enabled = False 
- 
-[windowsmediacenter] 
-meta_enabled = False 
- 
-[moviesearcher] 
-cron_day = * 
-cron_hour = */6 
-cron_minute = 53 
-always_search = False 
-run_on_launch = 0 
-search_on_add = 1 
-EOF
-
+makeconfig couchpotato.template > /home/$UNAME/IPVR/.couchpotato/settings.conf
 fi
 
 dialog --title "Permissions" --infobox "Fixing Ownership and Permissions." 5 50
-chmod -R 775 /home/$UNAME/IPVR/
-chown -R $UNAME:$UNAME /home/$UNAME/IPVR/
+chmod -R 775 /home/$UNAME/
+chown -R $UNAME:$UNAME /home/$UNAME/
 
 dialog --title "Apache" --infobox "Installing Apache" 6 50
-apt-get -y install apache2 > /dev/null 2>&1
-
-a2enmod proxy > /dev/null 2>&1
-a2enmod proxy_http > /dev/null 2>&1
-a2enmod rewrite > /dev/null 2>&1
-a2enmod ssl > /dev/null 2>&1
+apt-get -y install apache2 >> $LOGFILE
+a2enmod proxy >> $LOGFILE
+a2enmod proxy_http >> $LOGFILE
+a2enmod rewrite >> $LOGFILE
+a2enmod ssl >> $LOGFILE
 openssl req -x509 -nodes -days 7200 -newkey rsa:2048 -subj "/C=US/ST=NONE/L=NONE/O=Private/CN=Private" -keyout /etc/ssl/private/apache.key -out /etc/ssl/certs/apache.crt
 cat << EOF > /etc/apache2/sites-available/000-default.conf 
 <VirtualHost *:80>
@@ -1983,6 +1321,9 @@ SSLProxyEngine On
 SSLCertificateFile /etc/ssl/certs/apache.crt
 SSLCertificateKeyFile /etc/ssl/private/apache.key
 
+ProxyPass / http://localhost:8085
+ProxyPassReverse / http://localhost:8085
+
 ProxyPass /sabnzbd http://localhost:8085/sabnzbd
 ProxyPassReverse /sabnzbd http://localhost:8085/sabnzbd
 
@@ -2006,7 +1347,6 @@ service apache2 restart
 
 if [[ "$KODI" == "1" ]]
 then 
-echo ""
 installDependencies
 echo "Loading installer..."
 trap control_c SIGINT
