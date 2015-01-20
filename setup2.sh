@@ -1168,6 +1168,7 @@ chmod -R 775 /home/$UNAME/IPVR
 
 	dialog --title "Knight Cinema" --infobox "Updating Packages" 6 50
 	apt-get -y update >> $LOGFILE
+	apt-get install -y libjpeg libjpeg-dev libpng-dev libfreetype6 libfreetype6-dev zlib1g-dev pip
 if [[ "$SAB" == "1" ]] 
 then
 	dialog --title "SABnzbd" --infobox "Installing SABnzbd" 6 50
@@ -1175,7 +1176,7 @@ then
 	dialog --title "SABnzbd" --infobox "Stopping SABnzbd" 6 50
 	sleep 2
 	service sabnzbd sabnzbdplus >> $LOGFILE
-	killall *sabnzbd* >> $LOGFILE
+	pkill -f sabnzbd >> $LOGFILE
 	dialog --title "SABnzbd" --infobox "Removing Standard init scripts" 6 50
 	update-rc.d -f sabnzbdplus remove  >> $LOGFILE
 	dialog --title "SABnzbd" --infobox "Adding SABnzbd upstart config" 6 50
@@ -1324,9 +1325,6 @@ SSLCertificateKeyFile /etc/ssl/private/apache.key
 ProxyPass / http://localhost:8085
 ProxyPassReverse / http://localhost:8085
 
-ProxyPass /sabnzbd http://localhost:8085/sabnzbd
-ProxyPassReverse /sabnzbd http://localhost:8085/sabnzbd
-
 ProxyPass /sonarr http://localhost:8989/sonarr
 ProxyPassReverse /sonarr http://localhost:8989/sonarr
 
@@ -1334,8 +1332,13 @@ ProxyPass /couchpotato http://localhost:5050/couchpotato
 ProxyPassReverse /couchpotato http://localhost:5050/couchpotato
 
 RewriteEngine on
-RewriteRule ^/xbmc$ /xbmc/ [R]
 
+RewriteRule ^/sabnzbd$ /sabnzbd/ [R]
+ProxyPass /sabnzbd http://localhost:8085
+ProxyPassReverse /sabnzbd http://localhost:8085
+
+
+RewriteRule ^/xbmc$ /xbmc/ [R]
 ProxyPass /xbmc http://localhost:8080
 ProxyPassReverse /xbmc http://localhost:8080
 
@@ -1373,6 +1376,19 @@ allowRemoteWakeup
 optimizeInstallation
 cleanUp
 fi 
+
+pip install PIL
+git clone https://github.com/Hellowlol/HTPC-Manager.git /home/$UNAME/IPVR/.htpcmanager
+cat > /etc/init/htpcmanager.conf << EOF
+description "Upstart Script to run HTPC Manager as a service on Ubuntu/Debian based systems"
+setuid $UNAME
+setgid $UNAME
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+respawn limit 10 10
+exec  /home/$UNAME/IPVR/.htpcmanager/htpc.py --port 8086
+EOF
 
 IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
 
