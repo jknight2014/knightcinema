@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+	<Config>
+	  <Port>8989</Port>
+	  <SslPort>9898</SslPort>
+	  <EnableSsl>False</EnableSsl>
+	  <LaunchBrowser>False</LaunchBrowser>
+	  <ApiKey>$API</ApiKey>
+	  <AuthenticationEnabled>True</AuthenticationEnabled>
+	  <Branch>develop</Branch>
+	  <Username>$USERNAME</Username>
+	  <Password>$PASSWORD</Password>
+	  <LogLevel>Trace</LogLevel>
+	  <SslCertHash>
+	  </SslCertHash>
+	  <UrlBase>sonarr</UrlBase>
+	  <UpdateMechanism>BuiltIn</UpdateMechanism>
+	  <UpdateAutomatically>True</UpdateAutomatically>
+	</Config>

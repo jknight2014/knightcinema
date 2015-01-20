@@ -1,0 +1,41 @@
+username = $USERNAME
+password = $PASSWORD
+api_key = $API
+complete_dir = $DIR/Downloads/Complete
+download_dir = $DIR/Downloads/Incomplete
+[servers]
+[[$USENETHOST]]
+username = $USENETUSR
+enable = 1
+name = $USENETHOST
+fillserver = 0
+connections = $USENETCONN
+ssl = $USENETSSL
+host = $USENETHOST
+timeout = 120
+password = $USENETPASS
+optional = 0
+port = $USENETPORT
+retention = 0
+[categories]
+[[*]]
+priority = 0
+pp = 3
+name = *
+script = None
+newzbin = 
+dir = 
+[[tv]]
+priority = -100
+pp = 
+name = TV
+script = Default
+newzbin = 
+dir = $DIR/Downloads/Complete/TVShows
+[[movies]]
+priority = -100
+pp = 
+name = Movies
+script = Default
+newzbin = 
+dir = $DIR/Downloads/Complete/Movies
